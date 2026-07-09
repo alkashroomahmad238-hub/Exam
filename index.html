@@ -4,55 +4,57 @@
     <meta charset="UTF-8">
     <title>اختبار الكيمياء - AJK</title>
     <style>
-        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
-        .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 100px; color: rgba(0,0,0,0.05); z-index: -1; pointer-events: none; }
-        .box { background: white; padding: 30px; border-radius: 15px; max-width: 700px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .q-card { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 10px; }
-        .options { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        button { background: #2c3e50; color: white; padding: 15px; border: none; width: 100%; border-radius: 5px; cursor: pointer; font-size: 18px; }
-        .correct { color: green; font-weight: bold; }
-        .wrong { color: red; font-weight: bold; }
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; text-align: center; }
+        .logo { font-size: 40px; font-weight: bold; color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #2c3e50; display: inline-block; padding: 0 20px; }
+        .box { background: white; padding: 30px; border-radius: 15px; max-width: 600px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .options { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+        button { background: #34495e; color: white; padding: 18px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+        #next-btn { display: none; background: #2980b9; margin-top: 20px; width: 100%; }
     </style>
 </head>
 <body>
-    <div class="watermark">AJK</div>
-    <div class="box">
+    <div class="logo">AJK</div>
+    <div class="box" id="quiz">
         <h1>اختبار الكيمياء المكثف</h1>
-        <button onclick="gen()">بدء اختبار جديد</button>
-        <div id="q-container"></div>
+        <button onclick="startQuiz()">بدء الاختبار</button>
     </div>
 
     <script>
         const bank = [
-            {q: "ما هي القوى التي تنشأ بين الجزيئات غير القطبية؟", o: ["لندن", "هيدروجينية", "أيونية", "تساهمية"], a: "لندن"},
-            {q: "ماذا يسمى المحلول الذي يحتوي على أكبر كمية مذاب؟", o: ["مشبع", "غير مشبع", "فوق مشبع", "مركز"], a: "مشبع"},
-            {q: "ما هو رمز ثابت الاتزان؟", o: ["Kc", "Kp", "pH", "pOH"], a: "Kc"},
             {q: "عملية فقد الإلكترونات تسمى؟", o: ["تأكسد", "اختزال", "ترسيب", "تعادل"], a: "تأكسد"},
-            {q: "ما هو ناتج أكسدة الكحول الأولي؟", o: ["ألدهيد", "حمض", "إيثر", "ألكين"], a: "ألدهيد"}
-            // يمكنك إضافة المزيد هنا بنفس التنسيق
+            {q: "ما هو ناتج أكسدة الكحول الأولي؟", o: ["ألدهيد", "حمض", "إيثر", "ألكين"], a: "ألدهيد"},
+            {q: "العامل الحفاز يقلل من؟", o: ["طاقة التنشيط", "سرعة التفاعل", "التركيز", "الحجم"], a: "طاقة التنشيط"},
+            {q: "ما هي قيمة pH للمحلول المتعادل؟", o: ["7", "أقل من 7", "أكبر من 7", "0"], a: "7"}
         ];
-
-        function check(btn, correct, options) {
-            const parent = btn.parentElement;
-            const buttons = parent.querySelectorAll('button');
-            buttons.forEach(b => b.disabled = true);
-            
-            if(btn.innerText === correct) {
-                btn.style.backgroundColor = "#27ae60";
-                btn.innerHTML += " ✅ صح";
-            } else {
-                btn.style.backgroundColor = "#c0392b";
-                btn.innerHTML += " ❌ خطأ";
-            }
+        
+        let currentQ = 0, score = 0;
+        function startQuiz() { currentQ = 0; score = 0; showQ(); }
+        
+        function showQ() {
+            let item = bank[currentQ];
+            let html = `<h3>سؤال ${currentQ + 1} من ${bank.length}:</h3><p style="font-size:18px">${item.q}</p><div class="options">`;
+            item.o.forEach(o => { html += `<button onclick="check(this, '${item.a}')">${o}</button>`; });
+            html += `</div><button id="next-btn" onclick="nextQ()">السؤال التالي</button>`;
+            document.getElementById('quiz').innerHTML = html;
         }
 
-        function gen() {
-            let container = document.getElementById('q-container');
-            container.innerHTML = "<h3>اختر الإجابة الصحيحة:</h3>";
-            bank.sort(() => 0.5 - Math.random()).slice(0, 5).forEach((item, i) => {
-                let opts = item.o.map(o => `<button onclick="check(this, '${item.a}')">${o}</button>`).join('');
-                container.innerHTML += `<div class="q-card"><p>${i+1}. ${item.q}</p><div class="options">${opts}</div></div>`;
+        function check(btn, correct) {
+            let btns = document.querySelectorAll('.options button');
+            btns.forEach(b => {
+                b.disabled = true;
+                if(b.innerText === correct) { b.style.backgroundColor = "#27ae60"; if(btn === b) score++; }
+                else if(b === btn) b.style.backgroundColor = "#c0392b";
             });
+            document.getElementById('next-btn').style.display = "block";
+        }
+
+        function nextQ() {
+            currentQ++;
+            if(currentQ < bank.length) showQ();
+            else {
+                let msg = score === bank.length ? "جيد جداً! ممتاز" : (score > bank.length/2 ? "جيد" : "سيئ، تحتاج مراجعة");
+                document.getElementById('quiz').innerHTML = `<h1>نتيجتك: ${score}/${bank.length}</h1><p style="font-size:24px">${msg}</p><button onclick='startQuiz()'>إعادة الاختبار</button>`;
+            }
         }
     </script>
 </body>
