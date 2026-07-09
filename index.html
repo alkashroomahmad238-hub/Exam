@@ -7,7 +7,7 @@
         body { font-family: sans-serif; background: #f4f4f9; padding: 20px; text-align: center; }
         .box { background: white; padding: 20px; border-radius: 15px; max-width: 600px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         button { background: #34495e; color: white; padding: 15px; border: none; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; }
-        input { width: 90%; padding: 10px; margin-top: 10px; }
+        textarea { width: 100%; height: 150px; margin-top: 10px; }
         #admin-panel { display: none; background: #eee; padding: 15px; margin-top: 20px; border-radius: 10px; }
     </style>
 </head>
@@ -15,57 +15,47 @@
     <div class="box" id="quiz">
         <h1>اختبار الكيمياء</h1>
         <button onclick="startQuiz()">بدء الاختبار</button>
-        <button onclick="toggleAdmin()" style="background:#7f8c8d; font-size:12px;">إعدادات المطور</button>
+        <button onclick="document.getElementById('admin-panel').style.display='block'" style="background:#7f8c8d; font-size:12px;">إعدادات المطور</button>
         
         <div id="admin-panel">
-            <h3>إعدادات الاختبار</h3>
-            <input type="number" id="q-limit" placeholder="عدد الأسئلة (مثلاً 5)">
-            <button onclick="saveLimit()" style="background:#2980b9;">حفظ عدد الأسئلة</button>
-            <hr>
-            <textarea id="q-input" placeholder='{"q":"سؤال؟", "o":["أ","ب","ج","د"], "a":"أ"}' style="width:100%; height:80px;"></textarea>
-            <button onclick="addQuestion()" style="background:#27ae60;">إضافة سؤال جديد</button>
-            <button onclick="clearData()" style="background:#c0392b;">مسح الكل</button>
+            <h3>إضافة مجموعة أسئلة (ضعها بين قوسين [ ])</h3>
+            <textarea id="q-input" placeholder='[{"q":"س1؟", "o":["أ","ب"], "a":"أ"}, {"q":"س2؟", "o":["ج","د"], "a":"ج"}]'></textarea>
+            <button onclick="addQuestions()" style="background:#27ae60;">حفظ المجموعة كاملة</button>
+            <button onclick="localStorage.clear(); location.reload();" style="background:#c0392b;">مسح جميع الأسئلة</button>
         </div>
     </div>
 
     <script>
         let bank = JSON.parse(localStorage.getItem('myQuizData')) || [];
-        let limit = localStorage.getItem('qLimit') || 5;
-
-        function toggleAdmin() { document.getElementById('admin-panel').style.display = 'block'; }
         
-        function saveLimit() {
-            localStorage.setItem('qLimit', document.getElementById('q-limit').value);
-            alert("تم حفظ عدد الأسئلة!");
-        }
-
-        function addQuestion() {
+        function addQuestions() {
             try {
-                bank.push(JSON.parse(document.getElementById('q-input').value));
+                let newData = JSON.parse(document.getElementById('q-input').value);
+                bank = bank.concat(newData);
                 localStorage.setItem('myQuizData', JSON.stringify(bank));
-                alert("تم إضافة السؤال!");
-            } catch(e) { alert("خطأ في التنسيق!"); }
+                alert("تم إضافة الأسئلة بنجاح!");
+            } catch(e) { alert("خطأ! تأكد أنك وضعت الأسئلة بين [ ] وفواصل بينها"); }
         }
-
-        function clearData() { localStorage.clear(); location.reload(); }
 
         function startQuiz() {
-            let qLimit = parseInt(localStorage.getItem('qLimit')) || 5;
-            let shuffled = bank.sort(() => 0.5 - Math.random()).slice(0, qLimit);
             let currentQ = 0, score = 0;
-            
             function showQ() {
-                let item = shuffled[currentQ];
+                let item = bank[currentQ];
                 let html = `<h3>سؤال ${currentQ + 1}:</h3><p>${item.q}</p>`;
                 item.o.forEach(opt => html += `<button onclick="check(this, '${item.a}')">${opt}</button>`);
                 document.getElementById('quiz').innerHTML = html;
             }
-
             window.check = function(btn, correct) {
-                if(btn.innerText === correct) score++;
-                currentQ++;
-                if(currentQ < shuffled.length) showQ();
-                else document.getElementById('quiz').innerHTML = `<h1>نتيجتك: ${score}/${shuffled.length}</h1><button onclick='location.reload()'>عودة</button>`;
+                let btns = btn.parentElement.querySelectorAll('button');
+                btns.forEach(b => {
+                    b.disabled = true;
+                    b.style.backgroundColor = (b.innerText === correct) ? "#27ae60" : "#c0392b";
+                });
+                setTimeout(() => {
+                    currentQ++;
+                    if(currentQ < bank.length) showQ();
+                    else document.getElementById('quiz').innerHTML = `<h1>نتيجتك: ${score}/${bank.length}</h1><button onclick='location.reload()'>عودة</button>`;
+                }, 1500);
             };
             showQ();
         }
