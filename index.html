@@ -2,28 +2,58 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>اختبار الكيمياء</title>
+    <title>اختبار الكيمياء - AJK</title>
     <style>
         body { font-family: sans-serif; background: #f4f4f9; padding: 20px; text-align: center; }
         .box { background: white; padding: 30px; border-radius: 15px; max-width: 600px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         button { background: #34495e; color: white; padding: 15px; border: none; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; font-size: 16px; }
-        #next-btn { display: none; background: #2980b9; margin-top: 20px; }
+        input { width: 90%; padding: 12px; margin-top: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        #quiz-area, #admin-panel { display: none; }
+        #next-btn { display: none; background: #2980b9; }
     </style>
 </head>
 <body>
-    <div class="box" id="quiz">
-        <h1>اختبار الكيمياء</h1>
-        <button onclick="startQuiz()">بدء الاختبار</button>
+    <div class="box" id="main">
+        <div id="login-form">
+            <h1>اختبار الكيمياء</h1>
+            <input type="text" id="name" placeholder="الاسم الثلاثي">
+            <input type="text" id="std-id" placeholder="الرقم الدراسي">
+            <input type="tel" id="phone" placeholder="رقم الهاتف">
+            <button onclick="login()" style="background:#27ae60;">دخول للاختبار</button>
+        </div>
+
+        <div id="quiz-area">
+            <div id="quiz-content"></div>
+        </div>
+
+        <button onclick="document.getElementById('admin-panel').style.display='block'" style="background:#7f8c8d; font-size:10px; margin-top:50px;">إعدادات المطور</button>
+        <div id="admin-panel">
+            <h3>لوحة المطور (سري)</h3>
+            <textarea id="results-display" style="width:100%; height:150px;" placeholder="النتائج ستظهر هنا"></textarea>
+            <button onclick="showResults()" style="background:#2980b9;">عرض نتائج الطلاب</button>
+            <button onclick="localStorage.removeItem('studentsData'); alert('تم مسح البيانات');" style="background:#c0392b;">مسح البيانات</button>
+        </div>
     </div>
 
     <script>
         const bank = [
             {q: "عملية فقد الإلكترونات تسمى؟", o: ["تأكسد", "اختزال", "ترسيب", "تعادل"], a: "تأكسد"},
-            {q: "ما هو ناتج أكسدة الكحول الأولي؟", o: ["ألدهيد", "حمض", "إيثر", "ألكين"], a: "ألدهيد"},
-            {q: "العامل الحفاز يقلل من؟", o: ["طاقة التنشيط", "سرعة التفاعل", "التركيز", "الحجم"], a: "طاقة التنشيط"}
+            {q: "ما هو ناتج أكسدة الكحول الأولي؟", o: ["ألدهيد", "حمض", "إيثر", "ألكين"], a: "ألدهيد"}
         ];
 
-        let currentQ = 0, score = 0;
+        let currentQ = 0, score = 0, userData = {};
+
+        function login() {
+            userData.name = document.getElementById('name').value;
+            userData.id = document.getElementById('std-id').value;
+            userData.phone = document.getElementById('phone').value;
+            
+            if(!userData.name || !userData.id || !userData.phone) return alert("يرجى تعبئة كافة الحقول!");
+            
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('quiz-area').style.display = 'block';
+            startQuiz();
+        }
 
         function startQuiz() {
             currentQ = 0; score = 0;
@@ -32,20 +62,16 @@
 
         function showQ() {
             let item = bank[currentQ];
+            let options = [...item.o].sort(() => 0.5 - Math.random());
             let html = `<h3>سؤال ${currentQ + 1} من ${bank.length}:</h3><p>${item.q}</p>`;
-            item.o.forEach(opt => {
-                html += `<button onclick="check(this, '${item.a}')">${opt}</button>`;
-            });
+            options.forEach(opt => html += `<button onclick="check(this, '${item.a}')">${opt}</button>`);
             html += `<button id="next-btn" onclick="nextQ()">السؤال التالي</button>`;
-            document.getElementById('quiz').innerHTML = html;
+            document.getElementById('quiz-content').innerHTML = html;
         }
 
         function check(btn, correct) {
             let btns = btn.parentElement.querySelectorAll('button');
-            btns.forEach(b => {
-                b.disabled = true;
-                b.style.backgroundColor = (b.innerText === correct) ? "#27ae60" : "#c0392b";
-            });
+            btns.forEach(b => { b.disabled = true; b.style.backgroundColor = (b.innerText === correct) ? "#27ae60" : "#c0392b"; });
             if(btn.innerText === correct) score++;
             document.getElementById('next-btn').style.display = "block";
         }
@@ -53,7 +79,21 @@
         function nextQ() {
             currentQ++;
             if(currentQ < bank.length) showQ();
-            else document.getElementById('quiz').innerHTML = `<h1>نتيجتك النهائية: ${score}/${bank.length}</h1><button onclick='startQuiz()'>إعادة الاختبار</button>`;
+            else finishQuiz();
+        }
+
+        function finishQuiz() {
+            let allResults = JSON.parse(localStorage.getItem('studentsData')) || [];
+            allResults.push({...userData, score: score, total: bank.length});
+            localStorage.setItem('studentsData', JSON.stringify(allResults));
+            document.getElementById('quiz-content').innerHTML = `<h1>نتيجتك: ${score}/${bank.length}</h1><button onclick='location.reload()'>خروج</button>`;
+        }
+
+        function showResults() {
+            let data = JSON.parse(localStorage.getItem('studentsData')) || [];
+            let output = "الاسم | الرقم | الهاتف | النتيجة\n--------------------------------\n";
+            data.forEach(s => output += `${s.name} | ${s.id} | ${s.phone} | ${s.score}/${s.total}\n`);
+            document.getElementById('results-display').value = output;
         }
     </script>
 </body>
