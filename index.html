@@ -5,114 +5,69 @@
     <title>اختبار الكيمياء - AJK</title>
     <style>
         body { font-family: sans-serif; background: #f4f4f9; padding: 20px; text-align: center; }
-        .logo { font-size: 40px; font-weight: bold; color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #2c3e50; display: inline-block; padding: 0 20px; }
-        .box { background: white; padding: 30px; border-radius: 15px; max-width: 600px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .options { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
-        button { background: #34495e; color: white; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; }
-        #next-btn { display: none; background: #2980b9; margin-top: 20px; }
+        .box { background: white; padding: 20px; border-radius: 15px; max-width: 600px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button { background: #34495e; color: white; padding: 15px; border: none; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; }
+        input { width: 90%; padding: 10px; margin-top: 10px; }
+        #admin-panel { display: none; background: #eee; padding: 15px; margin-top: 20px; border-radius: 10px; }
     </style>
 </head>
 <body>
-    <div class="logo">AJK</div>
     <div class="box" id="quiz">
-        <h1>اختبار الكيمياء المكثف</h1>
+        <h1>اختبار الكيمياء</h1>
         <button onclick="startQuiz()">بدء الاختبار</button>
+        <button onclick="toggleAdmin()" style="background:#7f8c8d; font-size:12px;">إعدادات المطور</button>
+        
+        <div id="admin-panel">
+            <h3>إعدادات الاختبار</h3>
+            <input type="number" id="q-limit" placeholder="عدد الأسئلة (مثلاً 5)">
+            <button onclick="saveLimit()" style="background:#2980b9;">حفظ عدد الأسئلة</button>
+            <hr>
+            <textarea id="q-input" placeholder='{"q":"سؤال؟", "o":["أ","ب","ج","د"], "a":"أ"}' style="width:100%; height:80px;"></textarea>
+            <button onclick="addQuestion()" style="background:#27ae60;">إضافة سؤال جديد</button>
+            <button onclick="clearData()" style="background:#c0392b;">مسح الكل</button>
+        </div>
     </div>
 
     <script>
-        const bank = [
-            {q: "عملية فقد الإلكترونات تسمى؟", o: ["تأكسد", "اختزال", "ترسيب", "تعادل"], a: "تأكسد"},
-            {q: "ما هو ناتج أكسدة الكحول الأولي؟", o: ["ألدهيد", "حمض", "إيثر", "ألكين"], a: "ألدهيد"},
-            {q: "العامل الحفاز يقلل من؟", o: ["طاقة التنشيط", "سرعة التفاعل", "التركيز", "الحجم"], a: "طاقة التنشيط"},
-            {q: "ما هي قيمة pH للمحلول المتعادل؟", o: ["7", "أقل من 7", "أكبر من 7", "0"], a: "7"},
-            {q: "ما هو العنصر الذي يرمز له بالرمز C؟", o: ["كربون", "كالسيوم", "كلور", "نحاس"], a: "كربون"},
-            {q: "كم عدد ذرات الهيدروجين في الماء H2O؟", o: ["1", "2", "3", "4"], a: "2"},
-            {q: "ما هي الصيغة الكيميائية للميثان؟", o: ["CH4", "C2H6", "C3H8", "C4H10"], a: "CH4"},
-            {q: "ما هو الغاز الذي نستهلكه في عملية التنفس؟", o: ["أكسجين", "نيتروجين", "هيدروجين", "ثاني أكسيد الكربون"], a: "أكسجين"},
-            {q: "ما هو الرقم الهيدروجيني (pH) للمحلول الحمضي؟", o: ["أقل من 7", "7", "أكبر من 7", "14"], a: "أقل من 7"},
-            {q: "ما هي الحالة التي تكون فيها المادة ذات حجم وشكل ثابت؟", o: ["الصلبة", "السائلة", "الغازية", "البلازما"], a: "الصلبة"}
-    {q: "ما هو العنصر الذي يرمز له بالرمز C؟", o: ["كربون", "كالسيوم", "كلور", "نحاس"], a: "كربون"},
-    {q: "كم عدد ذرات الهيدروجين في الماء H2O؟", o: ["1", "2", "3", "4"], a: "2"},
-    {q: "ما هي الصيغة الكيميائية للميثان؟", o: ["CH4", "C2H6", "C3H8", "C4H10"], a: "CH4"},
-    {q: "ما هو الغاز الذي نستهلكه في عملية التنفس؟", o: ["أكسجين", "نيتروجين", "هيدروجين", "ثاني أكسيد الكربون"], a: "أكسجين"},
-    {q: "ما هو الرقم الهيدروجيني (pH) للمحلول الحمضي؟", o: ["أقل من 7", "7", "أكبر من 7", "14"], a: "أقل من 7"},
-    {q: "ما هي الحالة التي تكون فيها المادة ذات حجم وشكل ثابت؟", o: ["الصلبة", "السائلة", "الغازية", "البلازما"], a: "الصلبة"},
-    {q: "ماذا يسمى الانتقال من الحالة الصلبة إلى الغازية مباشرة؟", o: ["تسامي", "تبخر", "تكثف", "انصهار"], a: "تسامي"},
-    {q: "أي مما يلي يُعد من الألكانات؟", o: ["إيثان", "إيثين", "إيثاين", "بنزين"], a: "إيثان"},
-    {q: "ما هو عدد ذرات الكربون في البروبان؟", o: ["3", "1", "2", "4"], a: "3"},
-    {q: "ماذا يسمى المحلول المشبع؟", o: ["الذي يحتوي على أقصى كمية مذاب", "محلول مخفف", "محلول مركز", "محلول غير مشبع"], a: "الذي يحتوي على أقصى كمية مذاب"},
-    {q: "أي من التالي هو حمض قوي؟", o: ["HCl", "CH3COOH", "H2CO3", "HF"], a: "HCl"},
-    {q: "ما هي وحدة قياس الضغط الجوي؟", o: ["باسكال", "مول", "لتر", "كلفن"], a: "باسكال"},
-    {q: "ماذا يحدث عند زيادة درجة حرارة الغاز؟", o: ["يزداد حجمه", "يقل حجمه", "تزداد كثافته", "لا يتغير شيء"], a: "يزداد حجمه"},
-    {q: "ما هو أثقل جسيم في الذرة؟", o: ["نيوترون", "إلكترون", "بروتون", "فوتون"], a: "نيوترون"},
-    {q: "في أي مدار يوجد أكبر عدد من الإلكترونات في ذرة الصوديوم؟", o: ["المدار الثالث", "المدار الأول", "المدار الثاني", "المدار الرابع"], a: "المدار الثالث"},
-    {q: "ما هو رمز عنصر الصوديوم؟", o: ["Na", "S", "So", "Sn"], a: "Na"},
-    {q: "أي من التالي عنصر نبيل؟", o: ["هيليوم", "هيدروجين", "أكسجين", "نيتروجين"], a: "هيليوم"},
-    {q: "ما هو نوع الرابطة في ملح الطعام (NaCl)؟", o: ["أيونية", "تساهمية", "فلزية", "هيدروجينية"], a: "أيونية"},
-    {q: "ماذا يعني التفاعل الطارد للحرارة؟", o: ["انطلاق طاقة", "امتصاص طاقة", "ثبات الطاقة", "تفاعل لا نهائي"], a: "انطلاق طاقة"},
-    {q: "ما هي الصيغة العامة للألكينات؟", o: ["CnH2n", "CnH2n+2", "CnH2n-2", "CnHn"], a: "CnH2n"},
-    {q: "ما هو اسم العملية التي يتم فيها تحويل السائل إلى بخار؟", o: ["تبخر", "تجمد", "تكثف", "تسامي"], a: "تبخر"},
-    {q: "ما هي المادة التي تزيد سرعة التفاعل دون أن تُستهلك؟", o: ["عامل حفاز", "متفاعل", "ناتج", "مذيب"], a: "عامل حفاز"},
-    {q: "كم عدد مجموعات الجدول الدوري؟", o: ["18", "7", "8", "10"], a: "18"},
-    {q: "ما هو اسم المادة المذابة في المحلول؟", o: ["مذاب", "مذيب", "محلول", "راسب"], a: "مذاب"},
-    {q: "ما هو رمز عنصر الحديد؟", o: ["Fe", "F", "Fei", "I"], a: "Fe"},
-    {q: "أي نوع من الروابط توجد في جزيء الهيدروجين (H2)؟", o: ["تساهمية", "أيونية", "هيدروجينية", "فلزية"], a: "تساهمية"},
-    {q: "ما هو عدد البروتونات في ذرة الأكسجين؟", o: ["8", "6", "10", "16"], a: "8"},
-    {q: "ماذا يسمى فقدان الإلكترونات؟", o: ["تأكسد", "اختزال", "تعادل", "تسامي"], a: "تأكسد"},
-    {q: "ماذا يسمى اكتساب الإلكترونات؟", o: ["اختزال", "تأكسد", "تعادل", "انصهار"], a: "اختزال"},
-    {q: "أي من التالي ليس من حالات المادة؟", o: ["الضوء", "الصلبة", "السائلة", "الغازية"], a: "الضوء"},
-    {q: "ما هو المحلول القاعدي؟", o: ["pH > 7", "pH < 7", "pH = 7", "pH = 0"], a: "pH > 7"},
-    {q: "ما هي الكتلة المولية للهيدروجين تقريباً؟", o: ["1", "12", "16", "23"], a: "1"},
-    {q: "ما هو رمز عنصر الكالسيوم؟", o: ["Ca", "C", "Cl", "K"], a: "Ca"},
-    {q: "ما هو الغاز الذي نطلقه في عملية التنفس؟", o: ["ثاني أكسيد الكربون", "أكسجين", "نيتروجين", "هيدروجين"], a: "ثاني أكسيد الكربون"},
-    {q: "كم تبلغ درجة تجمد الماء المقطر؟", o: ["0", "10", "100", "50"], a: "0"},
-    {q: "ما هي الرابطة التي تنشأ من مشاركة الإلكترونات؟", o: ["تساهمية", "أيونية", "فلزية", "هيدروجينية"], a: "تساهمية"},
-    {q: "ماذا يسمى عنصر الكربون بوضعه النقي؟", o: ["جرافيت", "أكسجين", "نيتروجين", "حديد"], a: "جرافيت"},
-    {q: "ما هو المذيب العام في الطبيعة؟", o: ["الماء", "البنزين", "الكحول", "الزيت"], a: "الماء"},
-    {q: "أي من التالي هو غاز خامر؟", o: ["أرغون", "أكسجين", "كلور", "فلور"], a: "أرغون"},
-    {q: "ماذا تسمى الذرات التي لها نفس عدد البروتونات وتختلف في النيوترونات؟", o: ["نظائر", "مركبات", "أيونات", "جزيئات"], a: "نظائر"},
-    {q: "ما هو رمز عنصر المغنيسيوم؟", o: ["Mg", "Mn", "M", "Mi"], a: "Mg"},
-    {q: "في الجدول الدوري، أين توجد الفلزات؟", o: ["الجانب الأيسر", "الجانب الأيمن", "الوسط", "الأسفل"], a: "الجانب الأيسر"},
-    {q: "ما هو اسم العملية التي تعيد الغاز للحالة السائلة؟", o: ["تكثف", "تبخر", "تسامي", "انصهار"], a: "تكثف"},
-    {q: "كم عدد ذرات الأكسجين في O3 (الأوزون)؟", o: ["3", "1", "2", "4"], a: "3"},
-    {q: "أي من التالي هو قاعدة قوية؟", o: ["NaOH", "HCl", "H2SO4", "CH3COOH"], a: "NaOH"},
-    {q: "ما هو العنصر الأكثر وفرة في الكون؟", o: ["هيدروجين", "هيليوم", "أكسجين", "كربون"], a: "هيدروجين"},
-    {q: "ماذا يعني التفاعل الماص للحرارة؟", o: ["امتصاص طاقة", "انطلاق طاقة", "ثبات درجة الحرارة", "تفاعل تلقائي"], a: "امتصاص طاقة"},
-    {q: "ما هو الرمز الكيميائي للذهب؟", o: ["Au", "Ag", "Fe", "Cu"], a: "Au"},
-    {q: "ما هي المادة التي تعطي بروتونات في التفاعل؟", o: ["حمض", "قاعدة", "مذيب", "مؤكسد"], a: "حمض"},
-    {q: "ماذا يحدث لحجم الغاز عند زيادة الضغط (قانون بويل)؟", o: ["يقل الحجم", "يزداد الحجم", "لا يتغير الحجم", "تتغير الكتلة"], a: "يقل الحجم"}
-        ];
+        let bank = JSON.parse(localStorage.getItem('myQuizData')) || [];
+        let limit = localStorage.getItem('qLimit') || 5;
+
+        function toggleAdmin() { document.getElementById('admin-panel').style.display = 'block'; }
         
-        let currentQ = 0, score = 0;
-        
-        function startQuiz() { currentQ = 0; score = 0; bank.sort(() => 0.5 - Math.random()); showQ(); }
-        
-        function showQ() {
-            let item = bank[currentQ];
-            let html = `<h3>سؤال ${currentQ + 1} من ${bank.length}:</h3><p style="font-size:18px">${item.q}</p><div class="options">`;
-            item.o.forEach(opt => { html += `<button onclick="check(this, '${item.a}')">${opt}</button>`; });
-            html += `</div><button id="next-btn" onclick="nextQ()">السؤال التالي</button>`;
-            document.getElementById('quiz').innerHTML = html;
+        function saveLimit() {
+            localStorage.setItem('qLimit', document.getElementById('q-limit').value);
+            alert("تم حفظ عدد الأسئلة!");
         }
 
-        function check(btn, correct) {
-            let btns = btn.parentElement.querySelectorAll('button');
-            btns.forEach(b => {
-                b.disabled = true;
-                if(b.innerText === correct) b.style.backgroundColor = "#27ae60";
-                else if(b === btn) b.style.backgroundColor = "#c0392b";
-            });
-            document.getElementById('next-btn').style.display = "block";
-            if(btn.innerText === correct) score++;
+        function addQuestion() {
+            try {
+                bank.push(JSON.parse(document.getElementById('q-input').value));
+                localStorage.setItem('myQuizData', JSON.stringify(bank));
+                alert("تم إضافة السؤال!");
+            } catch(e) { alert("خطأ في التنسيق!"); }
         }
 
-        function nextQ() {
-            currentQ++;
-            if(currentQ < bank.length) showQ();
-            else {
-                let msg = score === bank.length ? "ممتاز!" : (score >= bank.length/2 ? "جيد" : "تحتاج مراجعة");
-                document.getElementById('quiz').innerHTML = `<h1>نتيجتك: ${score}/${bank.length}</h1><p>${msg}</p><button onclick='startQuiz()'>إعادة الاختبار</button>`;
+        function clearData() { localStorage.clear(); location.reload(); }
+
+        function startQuiz() {
+            let qLimit = parseInt(localStorage.getItem('qLimit')) || 5;
+            let shuffled = bank.sort(() => 0.5 - Math.random()).slice(0, qLimit);
+            let currentQ = 0, score = 0;
+            
+            function showQ() {
+                let item = shuffled[currentQ];
+                let html = `<h3>سؤال ${currentQ + 1}:</h3><p>${item.q}</p>`;
+                item.o.forEach(opt => html += `<button onclick="check(this, '${item.a}')">${opt}</button>`);
+                document.getElementById('quiz').innerHTML = html;
             }
+
+            window.check = function(btn, correct) {
+                if(btn.innerText === correct) score++;
+                currentQ++;
+                if(currentQ < shuffled.length) showQ();
+                else document.getElementById('quiz').innerHTML = `<h1>نتيجتك: ${score}/${shuffled.length}</h1><button onclick='location.reload()'>عودة</button>`;
+            };
+            showQ();
         }
     </script>
 </body>
