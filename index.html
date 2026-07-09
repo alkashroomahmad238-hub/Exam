@@ -2,12 +2,12 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>اختبار الكيمياء - AJK</title>
+    <title>اختبار الكيمياء</title>
     <style>
         body { font-family: sans-serif; background: #f4f4f9; padding: 20px; text-align: center; }
-        .box { background: white; padding: 20px; border-radius: 15px; max-width: 600px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        button { background: #34495e; color: white; padding: 15px; border: none; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; }
-        #next-btn { display: none; background: #2980b9; }
+        .box { background: white; padding: 30px; border-radius: 15px; max-width: 600px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button { background: #34495e; color: white; padding: 15px; border: none; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; font-size: 16px; }
+        #next-btn { display: none; background: #2980b9; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -17,12 +17,10 @@
     </div>
 
     <script>
-        // مصفوفة الأسئلة - تأكد أن هذا الجزء سليم تماماً
         const bank = [
             {q: "عملية فقد الإلكترونات تسمى؟", o: ["تأكسد", "اختزال", "ترسيب", "تعادل"], a: "تأكسد"},
             {q: "ما هو ناتج أكسدة الكحول الأولي؟", o: ["ألدهيد", "حمض", "إيثر", "ألكين"], a: "ألدهيد"},
             {q: "العامل الحفاز يقلل من؟", o: ["طاقة التنشيط", "سرعة التفاعل", "التركيز", "الحجم"], a: "طاقة التنشيط"}
-            // يمكنك إضافة الـ 50 سؤالاً هنا بنفس النمط
         ];
 
         let currentQ = 0, score = 0;
@@ -34,9 +32,10 @@
 
         function showQ() {
             let item = bank[currentQ];
-            let options = [...item.o].sort(() => 0.5 - Math.random());
             let html = `<h3>سؤال ${currentQ + 1} من ${bank.length}:</h3><p>${item.q}</p>`;
-            options.forEach(opt => html += `<button onclick="check(this, '${item.a}')">${opt}</button>`);
+            item.o.forEach(opt => {
+                html += `<button onclick="check(this, '${item.a}')">${opt}</button>`;
+            });
             html += `<button id="next-btn" onclick="nextQ()">السؤال التالي</button>`;
             document.getElementById('quiz').innerHTML = html;
         }
@@ -54,7 +53,7 @@
         function nextQ() {
             currentQ++;
             if(currentQ < bank.length) showQ();
-            else document.getElementById('quiz').innerHTML = `<h1>نتيجتك: ${score}/${bank.length}</h1><button onclick='startQuiz()'>إعادة الاختبار</button>`;
+            else document.getElementById('quiz').innerHTML = `<h1>نتيجتك النهائية: ${score}/${bank.length}</h1><button onclick='startQuiz()'>إعادة الاختبار</button>`;
         }
     </script>
 </body>
