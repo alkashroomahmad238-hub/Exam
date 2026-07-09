@@ -7,9 +7,9 @@
         body { font-family: sans-serif; background: #f4f4f9; padding: 20px; text-align: center; }
         .logo { font-size: 40px; font-weight: bold; color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #2c3e50; display: inline-block; padding: 0 20px; }
         .box { background: white; padding: 30px; border-radius: 15px; max-width: 600px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .options { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
-        button { background: #34495e; color: white; padding: 18px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
-        #next-btn { display: none; background: #2980b9; margin-top: 20px; width: 100%; }
+        .options { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+        button { background: #34495e; color: white; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; }
+        #next-btn { display: none; background: #2980b9; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -24,8 +24,13 @@
             {q: "عملية فقد الإلكترونات تسمى؟", o: ["تأكسد", "اختزال", "ترسيب", "تعادل"], a: "تأكسد"},
             {q: "ما هو ناتج أكسدة الكحول الأولي؟", o: ["ألدهيد", "حمض", "إيثر", "ألكين"], a: "ألدهيد"},
             {q: "العامل الحفاز يقلل من؟", o: ["طاقة التنشيط", "سرعة التفاعل", "التركيز", "الحجم"], a: "طاقة التنشيط"},
-            {q: "ما هي قيمة pH للمحلول المتعادل؟", o: ["7", "أقل من 7", "أكبر من 7", "0"], a: "7"}
-            [
+            {q: "ما هي قيمة pH للمحلول المتعادل؟", o: ["7", "أقل من 7", "أكبر من 7", "0"], a: "7"},
+            {q: "ما هو العنصر الذي يرمز له بالرمز C؟", o: ["كربون", "كالسيوم", "كلور", "نحاس"], a: "كربون"},
+            {q: "كم عدد ذرات الهيدروجين في الماء H2O؟", o: ["1", "2", "3", "4"], a: "2"},
+            {q: "ما هي الصيغة الكيميائية للميثان؟", o: ["CH4", "C2H6", "C3H8", "C4H10"], a: "CH4"},
+            {q: "ما هو الغاز الذي نستهلكه في عملية التنفس؟", o: ["أكسجين", "نيتروجين", "هيدروجين", "ثاني أكسيد الكربون"], a: "أكسجين"},
+            {q: "ما هو الرقم الهيدروجيني (pH) للمحلول الحمضي؟", o: ["أقل من 7", "7", "أكبر من 7", "14"], a: "أقل من 7"},
+            {q: "ما هي الحالة التي تكون فيها المادة ذات حجم وشكل ثابت؟", o: ["الصلبة", "السائلة", "الغازية", "البلازما"], a: "الصلبة"}
     {q: "ما هو العنصر الذي يرمز له بالرمز C؟", o: ["كربون", "كالسيوم", "كلور", "نحاس"], a: "كربون"},
     {q: "كم عدد ذرات الهيدروجين في الماء H2O؟", o: ["1", "2", "3", "4"], a: "2"},
     {q: "ما هي الصيغة الكيميائية للميثان؟", o: ["CH4", "C2H6", "C3H8", "C4H10"], a: "CH4"},
@@ -76,37 +81,37 @@
     {q: "ما هو الرمز الكيميائي للذهب؟", o: ["Au", "Ag", "Fe", "Cu"], a: "Au"},
     {q: "ما هي المادة التي تعطي بروتونات في التفاعل؟", o: ["حمض", "قاعدة", "مذيب", "مؤكسد"], a: "حمض"},
     {q: "ماذا يحدث لحجم الغاز عند زيادة الضغط (قانون بويل)؟", o: ["يقل الحجم", "يزداد الحجم", "لا يتغير الحجم", "تتغير الكتلة"], a: "يقل الحجم"}
-]
-
         ];
         
         let currentQ = 0, score = 0;
-        function startQuiz() { currentQ = 0; score = 0; showQ(); }
+        
+        function startQuiz() { currentQ = 0; score = 0; bank.sort(() => 0.5 - Math.random()); showQ(); }
         
         function showQ() {
             let item = bank[currentQ];
             let html = `<h3>سؤال ${currentQ + 1} من ${bank.length}:</h3><p style="font-size:18px">${item.q}</p><div class="options">`;
-            item.o.forEach(o => { html += `<button onclick="check(this, '${item.a}')">${o}</button>`; });
+            item.o.forEach(opt => { html += `<button onclick="check(this, '${item.a}')">${opt}</button>`; });
             html += `</div><button id="next-btn" onclick="nextQ()">السؤال التالي</button>`;
             document.getElementById('quiz').innerHTML = html;
         }
 
         function check(btn, correct) {
-            let btns = document.querySelectorAll('.options button');
+            let btns = btn.parentElement.querySelectorAll('button');
             btns.forEach(b => {
                 b.disabled = true;
-                if(b.innerText === correct) { b.style.backgroundColor = "#27ae60"; if(btn === b) score++; }
+                if(b.innerText === correct) b.style.backgroundColor = "#27ae60";
                 else if(b === btn) b.style.backgroundColor = "#c0392b";
             });
             document.getElementById('next-btn').style.display = "block";
+            if(btn.innerText === correct) score++;
         }
 
         function nextQ() {
             currentQ++;
             if(currentQ < bank.length) showQ();
             else {
-                let msg = score === bank.length ? "جيد جداً! ممتاز" : (score > bank.length/2 ? "جيد" : "سيئ، تحتاج مراجعة");
-                document.getElementById('quiz').innerHTML = `<h1>نتيجتك: ${score}/${bank.length}</h1><p style="font-size:24px">${msg}</p><button onclick='startQuiz()'>إعادة الاختبار</button>`;
+                let msg = score === bank.length ? "ممتاز!" : (score >= bank.length/2 ? "جيد" : "تحتاج مراجعة");
+                document.getElementById('quiz').innerHTML = `<h1>نتيجتك: ${score}/${bank.length}</h1><p>${msg}</p><button onclick='startQuiz()'>إعادة الاختبار</button>`;
             }
         }
     </script>
