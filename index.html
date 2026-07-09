@@ -2,67 +2,56 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>اختبار الكيمياء المكثف - AJK</title>
+    <title>اختبار الكيمياء - AJK</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; position: relative; }
-        .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 100px; color: rgba(0, 0, 0, 0.05); z-index: -1; pointer-events: none; }
-        .quiz-box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
-        button { background: #2c3e50; color: white; padding: 15px 30px; border: none; cursor: pointer; border-radius: 5px; font-size: 18px; }
-        .question { margin-bottom: 25px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
+        .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 100px; color: rgba(0,0,0,0.05); z-index: -1; pointer-events: none; }
+        .box { background: white; padding: 30px; border-radius: 15px; max-width: 700px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .q-card { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 10px; }
+        .options { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        button { background: #2c3e50; color: white; padding: 15px; border: none; width: 100%; border-radius: 5px; cursor: pointer; font-size: 18px; }
+        .correct { color: green; font-weight: bold; }
+        .wrong { color: red; font-weight: bold; }
     </style>
 </head>
 <body>
-
     <div class="watermark">AJK</div>
-
-    <div class="quiz-box">
+    <div class="box">
         <h1>اختبار الكيمياء المكثف</h1>
-        <button onclick="generateQuiz()">بدء اختبار جديد</button>
-        <div id="quiz-container"></div>
+        <button onclick="gen()">بدء اختبار جديد</button>
+        <div id="q-container"></div>
     </div>
 
     <script>
         const bank = [
-            {q: "ما هي القوى التي تنشأ بين الجزيئات غير القطبية؟", a: "قوى لندن"},
-            {q: "أي الحالات تكون الجزيئات فيها ثابتة في مكانها؟", a: "الحالة الصلبة"},
-            {q: "ما الذي يربط بين ضغط الغاز وحجمه عند ثبوت الحرارة؟", a: "قانون بويل"},
-            {q: "عملية تحول المادة من صلب إلى غاز تسمى؟", a: "التسامي"},
-            {q: "أي الحالات تمتلك أعلى طاقة حركية للجسيمات؟", a: "الحالة الغازية"},
-            {q: "ما هو تأثير زيادة الحرارة على لزوجة السائل؟", a: "تقل اللزوجة"},
-            {q: "ماذا يسمى المحلول الذي يحتوي على أكبر كمية مذاب؟", a: "المحلول المشبع"},
-            {q: "ما تأثير زيادة الضغط على ذائبية الغاز؟", a: "تزيد الذائبية"},
-            {q: "ما وحدة قياس المولارية؟", a: "مول/لتر"},
-            {q: "ما هو رمز ثابت الاتزان؟", a: "Kc"},
-            {q: "تفاعل طارد للحرارة، ماذا يحدث عند رفع الحرارة؟", a: "ينزاح نحو المتفاعلات"},
-            {q: "إذا كانت Kc كبيرة جداً، أين يقع موضع الاتزان؟", a: "جهة النواتج"},
-            {q: "العامل الوحيد الذي يغير قيمة Kc هو؟", a: "درجة الحرارة"},
-            {q: "حسب لويس، الحمض هو المادة التي؟", a: "تستقبل زوجاً من الإلكترونات"},
-            {q: "ما هي قيمة pOH للمحلول المتعادل؟", a: "7"},
-            {q: "المحلول المنظم يتكون من؟", a: "حمض ضعيف وقاعدته المرافقة"},
-            {q: "قيمة pH للمحلول القاعدي دائماً؟", a: "أكبر من 7"},
-            {q: "القاعدة المرافقة لحمض HCl هي؟", a: "Cl-"},
-            {q: "ما هي طاقة التنشيط؟", a: "أقل طاقة لازمة لبدء التفاعل"},
-            {q: "العامل الحفاز يقلل من؟", a: "طاقة التنشيط"},
-            {q: "تزداد سرعة التفاعل بزيادة درجة الحرارة بسبب؟", a: "زيادة التصادمات الفعالة"},
-            {q: "القطب الذي يحدث عنده الاختزال هو؟", a: "المهبط"},
-            {q: "في الخلية الجلفانية، تنتقل الإلكترونات من؟", a: "المصعد إلى المهبط"},
-            {q: "عملية فقد الإلكترونات تسمى؟", a: "تأكسد"},
-            {q: "ما دور القنطرة الملحية؟", a: "حفظ التعادل الكهربائي"},
-            {q: "ما هي الصيغة العامة للألكانات؟", a: "CnH2n+2"},
-            {q: "الرابطة في الألكينات تكون؟", a: "ثنائية"},
-            {q: "المجموعة الوظيفية في الكحولات هي؟", a: "-OH"},
-            {q: "ما هو ناتج أكسدة الكحول الأولي؟", a: "ألدهيد"}
+            {q: "ما هي القوى التي تنشأ بين الجزيئات غير القطبية؟", o: ["لندن", "هيدروجينية", "أيونية", "تساهمية"], a: "لندن"},
+            {q: "ماذا يسمى المحلول الذي يحتوي على أكبر كمية مذاب؟", o: ["مشبع", "غير مشبع", "فوق مشبع", "مركز"], a: "مشبع"},
+            {q: "ما هو رمز ثابت الاتزان؟", o: ["Kc", "Kp", "pH", "pOH"], a: "Kc"},
+            {q: "عملية فقد الإلكترونات تسمى؟", o: ["تأكسد", "اختزال", "ترسيب", "تعادل"], a: "تأكسد"},
+            {q: "ما هو ناتج أكسدة الكحول الأولي؟", o: ["ألدهيد", "حمض", "إيثر", "ألكين"], a: "ألدهيد"}
+            // يمكنك إضافة المزيد هنا بنفس التنسيق
         ];
 
-        function generateQuiz() {
-            const container = document.getElementById('quiz-container');
-            container.innerHTML = "<h3>الأسئلة:</h3>";
-            const shuffled = bank.sort(() => 0.5 - Math.random());
-            shuffled.slice(0, 10).forEach((item, index) => {
-                container.innerHTML += `<div class="question">
-                    <p>${index + 1}. ${item.q}</p>
-                    <input type="text" placeholder="الإجابة هنا">
-                </div>`;
+        function check(btn, correct, options) {
+            const parent = btn.parentElement;
+            const buttons = parent.querySelectorAll('button');
+            buttons.forEach(b => b.disabled = true);
+            
+            if(btn.innerText === correct) {
+                btn.style.backgroundColor = "#27ae60";
+                btn.innerHTML += " ✅ صح";
+            } else {
+                btn.style.backgroundColor = "#c0392b";
+                btn.innerHTML += " ❌ خطأ";
+            }
+        }
+
+        function gen() {
+            let container = document.getElementById('q-container');
+            container.innerHTML = "<h3>اختر الإجابة الصحيحة:</h3>";
+            bank.sort(() => 0.5 - Math.random()).slice(0, 5).forEach((item, i) => {
+                let opts = item.o.map(o => `<button onclick="check(this, '${item.a}')">${o}</button>`).join('');
+                container.innerHTML += `<div class="q-card"><p>${i+1}. ${item.q}</p><div class="options">${opts}</div></div>`;
             });
         }
     </script>
